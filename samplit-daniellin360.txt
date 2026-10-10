@@ -1,0 +1,15 @@
+import sys
+import random
+
+<<<<<<< HEAD
+x = sys.argv[1]
+
+with open(x, "r") as file:
+=======
+name = sys.argv[1]
+
+with open(name, "r") as file:
+>>>>>>> hw_1b
+    for line in file:
+        if random.random() < 0.01:
+            print(line, end="")

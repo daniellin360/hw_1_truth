@@ -1,9 +1,9 @@
 import sys
 import random
 
-x = sys.argv[1]
+name = sys.argv[1]
 
-with open(x, "r") as file:
+with open(name, "r") as file:
     for line in file:
         if random.random() < 0.01:
             print(line, end="")
