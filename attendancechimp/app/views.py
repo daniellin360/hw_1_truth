@@ -33,6 +33,20 @@ def index(request):
     context = {}
     return render(request, 'app/index.html', context)
 
+def time_view(request):
+    """Converts to Central Time formatted as HH:MM"""
+
+    now = datetime.now(CDT)
+    hour_min = now.strftime("%H:%M")
+    return HttpResponse(hour_min, content_type="text/plain")
+
+def sum_view(request):
+    """Adds URL path for sum"""
+
+    n1 = float(request.GET.get("n1"))
+    n2 = float(request.GET.get("n2"))
+    sum = n1 + n2
+    return JsonResponse({"sum": sum})
 
 
 # ---------------------------------------------------------------------------
