@@ -36,13 +36,21 @@ class InstructorProfile(models.Model):
     """
     Represents an instructor for any given class. Only attribute will be instructor_id
     """
-    instructor_id = models.AutoField(primary_key = True)
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        primary_key=True
+    )
 
 class StudentProfile(models.Model):
     """
     Represents a student for any given class. Only attribute will be student_id
     """
-    student_id = models.AutoField(primary_key=True)
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        primary_key=True
+    )
 
 # ---------------------------------------------------------------------------
 # Course
@@ -92,8 +100,10 @@ class QRCodeUpload(models.Model):
     """
     Represents QR code sign ins among students
     """
-    upload_id = models.IntegerField(primary_key = True)
+    upload_id = models.AutoField(primary_key = True)
     student_id = models.ForeignKey(StudentProfile, on_delete=models.CASCADE)
+    image = models.FileField(upload_to="qr_uploads/")
+    uploaded_at = models.DateTimeField(auto_now_add=True)
 
 # ---------------------------------------------------------------------------
 # Helper / API functions
