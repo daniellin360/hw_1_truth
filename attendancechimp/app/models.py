@@ -32,36 +32,68 @@ logger = logging.getLogger(__name__) # set up tracking, auditing, and debugging
 # User profiles
 # ---------------------------------------------------------------------------
 
+class InstructorProfile(models.Model):
+    """
+    Represents an instructor for any given class. Only attribute will be instructor_id
+    """
+    instructor_id = models.AutoField(primary_key = True)
 
-
+class StudentProfile(models.Model):
+    """
+    Represents a student for any given class. Only attribute will be student_id
+    """
+    student_id = models.AutoField(primary_key=True)
 
 # ---------------------------------------------------------------------------
 # Course
 # ---------------------------------------------------------------------------
 
-
-
+class Course(models.Model):
+    """
+    Represents a course. Course attributes include course_id (primary key), name, 
+    instructor_id (foreign key), schedule
+    """
+    course_id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=200)
+    instructor_id = models.ForeignKey(InstructorProfile, on_delete = models.CASCADE)
+    schedule = models.CharField(max_length=200)
 
 # ---------------------------------------------------------------------------
 # Enrollment
 # ---------------------------------------------------------------------------
 
-
+class Enrollment(models.Model):
+    """
+    Represents junction table for students and courses.
+    """
+    student_id = models.ForeignKey(StudentProfile, on_delete = models.CASCADE)
+    course_id = models.ForeignKey(Course, on_delete = models.CASCADE)
+    pk = models.CompositePrimaryKey("student_id", "course_id")
 
 
 # ---------------------------------------------------------------------------
 # Lecture
 # ---------------------------------------------------------------------------
 
-
-
+class Lecture(models.Model):
+    """
+    Represents lectures from each course.
+    """
+    lecture_id = models.IntegerField(primary_key = True)
+    course_id = models.ForeignKey(Course, on_delete = models.CASCADE)
+    date = models.DateTimeField()
+    qr_identifier = models.IntegerField(unique=True)
 
 # ---------------------------------------------------------------------------
 # QR Code Upload
 # ---------------------------------------------------------------------------
 
-
-
+class QRCodeUpload(models.Model):
+    """
+    Represents QR code sign ins among students
+    """
+    upload_id = models.IntegerField(primary_key = True)
+    student_id = models.ForeignKey(StudentProfile, on_delete=models.CASCADE)
 
 # ---------------------------------------------------------------------------
 # Helper / API functions
