@@ -1,0 +1,20 @@
+<h1>Sign Up</h1>
+
+<form action="/app/createUser" method="POST">
+    {% csrf_token %}
+
+    <label>Username:</label>
+    <input type="text" name="user_name">
+
+    <label>Email:</label>
+    <input type="email" name="email">
+
+    <label>Password:</label>
+    <input type="password" name="password">
+
+    <input type="radio" name="is_student" value="1"> Student
+    <input type="radio" name="is_student" value="0"> Instructor
+
+    <button type="submit">Sign Up</button>
+
+</form>
