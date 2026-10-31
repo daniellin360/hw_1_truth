@@ -76,7 +76,9 @@ class Enrollment(models.Model):
     """
     student_id = models.ForeignKey(StudentProfile, on_delete = models.CASCADE)
     course_id = models.ForeignKey(Course, on_delete = models.CASCADE)
-    pk = models.CompositePrimaryKey("student_id", "course_id")
+    
+    class Meta:
+        unique_together = ("student_id", "course_id")
 
 
 # ---------------------------------------------------------------------------

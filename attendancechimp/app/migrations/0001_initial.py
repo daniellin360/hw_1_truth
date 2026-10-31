@@ -56,9 +56,23 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Enrollment',
             fields=[
-                ('pk', models.CompositePrimaryKey('student_id', 'course_id', blank=True, editable=False, primary_key=True, serialize=False)),
-                ('course_id', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='app.course')),
-                ('student_id', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='app.studentprofile')),
+                ('id', models.BigAutoField(
+                    auto_created=True,
+                    primary_key=True,
+                    serialize=False,
+                    verbose_name='ID'
+                )),
+                ('course_id', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, 
+                    to='app.course'
+                )),
+                ('student_id', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    to='app.studentprofile'
+                )),
             ],
+            options={
+                'unique_together': {('student_id', 'course_id')},
+            },
         ),
     ]
