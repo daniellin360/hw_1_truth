@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create QR Upload</title>
+</head>
+
+<body>
+    <h1>QR Code Upload</h1>
+
+    <form action="/app/createQRCodeUpload" method="POST" enctype="multipart/form-data">
+        <input type="file" name="imageUpload" required>
+        <button type="submit">Upload QR</button>
+    </form>
+</body>
+</html>
