@@ -219,9 +219,9 @@ def dumpUploads(request):
     codesInfo = []
 
     for upload in uploads:
-        data.append({"username": upload.student_id.user.username, "upload_time": upload.uploaded_at.strftime("%Y-%m-%d %H:%M:%S")})
+        codesInfo.append({"username": upload.student_id.user.username, "upload_time": upload.uploaded_at.strftime("%Y-%m-%d %H:%M:%S")})
 
-    return JsonResponse(data, safe=False)
+    return JsonResponse(codesInfo, safe=False)
 
 # ---------------------------------------------------------------------------
 # HW6  — getUploads
