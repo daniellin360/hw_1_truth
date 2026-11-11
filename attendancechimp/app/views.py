@@ -168,7 +168,7 @@ def createLecture(request):
     if course is None:
         return HttpResponseBadRequest("Course not found")
 
-    lecture_id = max(Course.objects.values_list("lecture_id", flat=True), default=0) + 1
+    lecture_id = max(Lecture.objects.values_list("lecture_id", flat=True), default=0) + 1
     date = datetime.now()
     qr_identifier = random.randint(100000, 999999)
 
