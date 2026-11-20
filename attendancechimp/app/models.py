@@ -15,7 +15,9 @@ Entities
 - Lecture         : a single class meeting (has a QR-code identifier)
 - QRCodeUpload    : a student's uploaded QR-code photograph
 """
-
+from datetime import datetime
+from django.utils import timezone
+from zoneinfo import ZoneInfo
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -65,6 +67,31 @@ class Course(models.Model):
     name = models.CharField(max_length=200)
     instructor_id = models.ForeignKey(InstructorProfile, on_delete = models.CASCADE)
     schedule = models.CharField(max_length=200)
+    course = models.CharField(max_length=100, unique=True, null=True, blank=True)
+
+    mon = models.BooleanField(default=False)
+    tue = models.BooleanField(default=False)
+    wed = models.BooleanField(default=False)
+    thu = models.BooleanField(default=False)
+    fri = models.BooleanField(default=False)
+
+    start_time = models.CharField(max_length=5, null=True, blank=True)
+    end_time = models.CharField(max_length=5, null=True, blank=True)
+
+    def meets_on_day(self, weekday):
+        """
+        Helper function that compiles the days in which the class meets in a list
+        """
+        days = [
+            self.mon,
+            self.tue,
+            self.wed,
+            self.thu,
+            self.fri,
+            False,
+            False
+        ]
+        return days[weekday]
 
 # ---------------------------------------------------------------------------
 # Enrollment
@@ -112,5 +139,37 @@ class QRCodeUpload(models.Model):
 # Helper / API functions
 # ---------------------------------------------------------------------------
 
+def getUploadsForCourse(course):
+    """
+    Helper function that checks whether 1) checks if the given course refers to the current existing course
+    2) Retrieves the QR Code upload 3) Checks if the upload was submitted during the class 
+    4) Returns the uplaods only when all conditions are satisfied
 
+    Parameters: 
+        course: course number
 
+    Return: the uplaods that satisfy the conditions for an upload for a course
+    """
+
+    try:
+        course_obj = Course.objects.get(course=course)
+    except Course.DoesNotExist:
+        return []
+
+    uploads = QRCodeUpload.objects.filter(lecture_id__course_id=course_obj)
+    uploads_satisfied = []
+
+    start = datetime.strptime(course_obj.start_time, "%H:%M").time()
+    end = datetime.strptime(course_obj.end_time, "%H:%M").time()
+
+    for upload in uploads:
+       
+        local_time = timezone.localtime(upload.uploaded_at, ZoneInfo("America/Chicago"))
+
+        if not course_obj.meets_on_day(local_time.weekday()):
+            continue
+
+        if start <= local_time.time() <= end:
+            uploads_satisfied.append(upload)
+
+    return uploads_satisfied

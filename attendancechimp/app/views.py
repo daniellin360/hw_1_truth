@@ -16,8 +16,10 @@ import zoneinfo
 import json
 import io
 import random
+from django.http import JsonResponse
 
-from .models import InstructorProfile, StudentProfile, Course, Lecture, QRCodeUpload
+from .models import InstructorProfile, StudentProfile, Course, Lecture, QRCodeUpload, getUploadsForCourse
+from django.utils import timezone
 
 CDT = zoneinfo.ZoneInfo("America/Chicago")
 
@@ -98,7 +100,6 @@ def new_course(request):
     """
     Renders HTML form of creating new course
     """
-    
     return render(request, 'app/new_course.html')
 
 def new_lecture(request):
@@ -116,7 +117,7 @@ def new_qr_upload(request):
     return render(request, 'app/new_qr_upload.html')
 
 @csrf_exempt
-def createCourse(request):
+def create_course(request):
     """
     Allows instructors to create new courses
     """
@@ -131,24 +132,32 @@ def createCourse(request):
         return HttpResponse("Not instructor", status=401)
 
     course_name = request.POST.get("course-name")
+    course_number = request.POST.get("course-number")
     start_time = request.POST.get("start-time")
     end_time = request.POST.get("end-time")
 
     selected_days = [day for day in ["mon", "tue", "wed", "thu", "fri"] if f"day-{day}" in request.POST]
 
-    if not course_name or not start_time or not end_time or not selected_days:
+    if not course_name or not course_number or not start_time or not end_time or not selected_days:
         return HttpResponseBadRequest("Missing required information")
+
+    if Course.objects.filter(course=course_number).exists():
+        return HttpResponseBadRequest("Course number already exists/not unique")
 
     schedule = f"{','.join(selected_days)} {start_time}-{end_time}"
     course_id = max(Course.objects.values_list("course_id", flat=True), default=0) + 1
     instructor = InstructorProfile.objects.get(user=request.user)
 
-    Course.objects.create(course_id=course_id, name=course_name, instructor_id=instructor, schedule=schedule)
+    Course.objects.create(
+        course_id=course_id, name=course_name, course=course_number, instructor_id=instructor, 
+        schedule=schedule, mon="mon" in selected_days, tue="tue" in selected_days,
+        wed="wed" in selected_days, thu="thu" in selected_days,
+        start_time=start_time, end_time=end_time)
 
     return HttpResponse("Course created", status = 200)
 
 @csrf_exempt
-def createLecture(request):
+def create_lecture(request):
     """
     Creates new lecture for a course
     """
@@ -180,7 +189,7 @@ def createLecture(request):
     return HttpResponse("Lecture created", status=200)
 
 @csrf_exempt
-def createQRCodeUpload(request):
+def create_qr_code_upload(request):
     """
     Creates a place for Students to upload QRs
     """
@@ -200,7 +209,7 @@ def createQRCodeUpload(request):
     QRCodeUpload.objects.create(student_id=student, image=image)
     return HttpResponse("QR code upload", status=200)
 
-def dumpUploads(request):
+def dump_uploads(request):
     """
     Returns JSON list of dictionaries of students QR uploads
     """
@@ -216,16 +225,51 @@ def dumpUploads(request):
 
     uploads = QRCodeUpload.objects.all()
 
-    codesInfo = []
+    codes_info = []
 
     for upload in uploads:
-        codesInfo.append({"username": upload.student_id.user.username, "upload_time": upload.uploaded_at.strftime("%Y-%m-%d %H:%M:%S")})
+        codes_info.append({"username": upload.student_id.user.username, "upload_time": upload.uploaded_at.strftime("%Y-%m-%d %H:%M:%S")})
 
-    return JsonResponse(codesInfo, safe=False)
+    return JsonResponse(codes_info, safe=False)
 
 # ---------------------------------------------------------------------------
 # HW6  — getUploads
 # ---------------------------------------------------------------------------
+
+def getUploads(request):
+    """
+    Returns JSON of valid QR code uploads in the class
+    """
+    if request.method != "GET":
+        return HttpResponseBadRequest("Only accepts GET")
+    
+    if not request.user.is_authenticated:
+        return HttpResponse("Unauthorized", status=401)
+    
+    if not InstructorProfile.objects.filter(user=request.user).exists():
+        return HttpResponse("Not instructor", status=401)
+
+    course = request.GET.get("course")
+
+    if course is None:
+        return JsonResponse({"error": "Missing course parameter"}, status=400)
+
+    uploads = getUploadsForCourse(course)
+    uploads_list = []
+
+    for upload in uploads:
+        local_time = timezone.localtime(
+            upload.uploaded_at,
+            CDT
+        )
+
+        uploads_list.append({
+            "username": upload.student_id.user.username,
+            "upload_time": local_time.strftime("%Y-%m-%d %H:%M:%S")
+        })
+
+    return JsonResponse(uploads_list, safe=False)
+
 
 
 
