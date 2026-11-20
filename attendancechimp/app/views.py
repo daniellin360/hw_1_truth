@@ -132,7 +132,7 @@ def create_course(request):
         return HttpResponse("Not instructor", status=401)
 
     course_name = request.POST.get("course-name")
-    course_number = request.POST.get("course-number")
+    course_number = request.POST.get("course-number") or course_name
     start_time = request.POST.get("start-time")
     end_time = request.POST.get("end-time")
 
